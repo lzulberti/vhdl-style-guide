@@ -38,3 +38,4 @@ from .rule_508 import rule_508
 from .rule_509 import rule_509
 from .rule_510 import rule_510
 from .rule_511 import rule_511
+from .rule_600 import rule_600
