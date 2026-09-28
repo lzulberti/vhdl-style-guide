@@ -380,6 +380,53 @@ def get_comment_tokens(oToi):
     return [oToken for oToken in oToi.get_tokens() if isinstance(oToken, parser.comment)]
 
 
+def style_can_autofix_separator(oToken, dStyle, sStringField, sLeftField, sLeftRepeatField):
+    """
+    Shared by rule_001 (header) and rule_003 (footer): a separator-only
+    header/footer (no textual header_string/footer_string) can be
+    autofixed by rebuilding it, as long as the existing comment already
+    starts with the configured left marker followed only by repeats of
+    the configured left-repeat character.
+    """
+    sComment = oToken.get_value()
+
+    if dStyle[sStringField] not in (None, ""):
+        return False
+
+    sPrefix = "--"
+    if dStyle[sLeftField] is not None:
+        sPrefix += dStyle[sLeftField]
+
+    sRepeat = dStyle[sLeftRepeatField] or ""
+    if sRepeat == "":
+        return False
+
+    if not sComment.startswith(sPrefix):
+        return False
+
+    sTail = sComment[len(sPrefix) :]
+    if sTail == "":
+        return True
+
+    for sChar in sTail:
+        if sChar != sRepeat:
+            return False
+
+    return True
+
+
+def select_autofix_style_index(self, oToi, oToken, sStringField, sLeftField, sLeftRepeatField):
+    if oToken is None:
+        return self.select_style_index(oToi)
+
+    for iStyleIndex in range(self.get_style_count()):
+        dStyle = self.get_style(iStyleIndex)
+        if style_can_autofix_separator(oToken, dStyle, sStringField, sLeftField, sLeftRepeatField):
+            return iStyleIndex
+
+    return self.select_style_index(oToi)
+
+
 def is_header(sComment):
     if bare_comment(sComment):
         return False

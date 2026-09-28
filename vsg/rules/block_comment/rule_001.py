@@ -65,7 +65,7 @@ class rule_001(block_rule.Rule):
             sSolution = "Change block comment header to : " + sHeader
             oViolation = violation.New(oToi.get_line_number(), oToi, sSolution)
 
-            if style_can_autofix_separator_header(oToken, dStyle):
+            if block_rule.style_can_autofix_separator(oToken, dStyle, "header_string", "header_left", "header_left_repeat"):
                 oViolation.set_action({"expected": sHeader})
 
             self.add_violation(oViolation)
@@ -87,43 +87,7 @@ class rule_001(block_rule.Rule):
 
 def select_autofix_header_style_index(self, oToi):
     oHeaderToken = oToi.get_first_token_matching(parser.comment)
-    if oHeaderToken is None:
-        return self.select_style_index(oToi)
-
-    for iStyleIndex in range(self.get_style_count()):
-        dStyle = self.get_style(iStyleIndex)
-        if style_can_autofix_separator_header(oHeaderToken, dStyle):
-            return iStyleIndex
-
-    return self.select_style_index(oToi)
-
-
-def style_can_autofix_separator_header(oToken, dStyle):
-    sComment = oToken.get_value()
-
-    if dStyle["header_string"] not in (None, ""):
-        return False
-
-    sPrefix = "--"
-    if dStyle["header_left"] is not None:
-        sPrefix += dStyle["header_left"]
-
-    sRepeat = dStyle["header_left_repeat"] or ""
-    if sRepeat == "":
-        return False
-
-    if not sComment.startswith(sPrefix):
-        return False
-
-    sTail = sComment[len(sPrefix) :]
-    if sTail == "":
-        return True
-
-    for sChar in sTail:
-        if sChar != sRepeat:
-            return False
-
-    return True
+    return block_rule.select_autofix_style_index(self, oToi, oHeaderToken, "header_string", "header_left", "header_left_repeat")
 
 
 #         1         2         3         4         5         6         7         8

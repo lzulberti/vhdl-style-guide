@@ -87,7 +87,7 @@ def analyze_footer(self, oToken, iLine, oToi, dStyle):
             sSolution = "Change block comment footer to : " + sFooter
             oViolation = violation.New(iLine, oToi, sSolution)
 
-            if style_can_autofix_separator_footer(oToken, dStyle):
+            if block_rule.style_can_autofix_separator(oToken, dStyle, "footer_string", "footer_left", "footer_left_repeat"):
                 oViolation.set_action({"expected": sFooter})
 
             self.add_violation(oViolation)
@@ -95,42 +95,5 @@ def analyze_footer(self, oToken, iLine, oToi, dStyle):
 
 def select_autofix_footer_style_index(self, oToi):
     lComments = block_rule.get_comment_tokens(oToi)
-    if not lComments:
-        return self.select_style_index(oToi)
-
-    oFooterToken = lComments[-1]
-
-    for iStyleIndex in range(self.get_style_count()):
-        dStyle = self.get_style(iStyleIndex)
-        if style_can_autofix_separator_footer(oFooterToken, dStyle):
-            return iStyleIndex
-
-    return self.select_style_index(oToi)
-
-
-def style_can_autofix_separator_footer(oToken, dStyle):
-    sComment = oToken.get_value()
-
-    if dStyle["footer_string"] not in (None, ""):
-        return False
-
-    sPrefix = "--"
-    if dStyle["footer_left"] is not None:
-        sPrefix += dStyle["footer_left"]
-
-    sRepeat = dStyle["footer_left_repeat"] or ""
-    if sRepeat == "":
-        return False
-
-    if not sComment.startswith(sPrefix):
-        return False
-
-    sTail = sComment[len(sPrefix) :]
-    if sTail == "":
-        return True
-
-    for sChar in sTail:
-        if sChar != sRepeat:
-            return False
-
-    return True
+    oFooterToken = lComments[-1] if lComments else None
+    return block_rule.select_autofix_style_index(self, oToi, oFooterToken, "footer_string", "footer_left", "footer_left_repeat")
