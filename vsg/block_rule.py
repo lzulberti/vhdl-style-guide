@@ -53,7 +53,7 @@ class Rule(structure.Rule):
 
         # Shared block comment style attributes.
         # Concrete rules expose only their own configuration keys, but the base
-        # class owns the full style set so it can validate the family counts
+        # class owns the full style set so it can validate the per-rule counts
         # and select one consistent style for the entire block.
         self.header_left = None
         self.header_left_repeat = "-"
@@ -334,21 +334,20 @@ class Rule(structure.Rule):
 
     def _validate_and_get_style_count(self):
         dCounts = {
-            "header": self._get_family_style_count(HEADER_FIELDS, "header"),
-            "body": self._get_family_style_count(BODY_FIELDS, "body"),
-            "footer": self._get_family_style_count(FOOTER_FIELDS, "footer"),
+            "header": self._get_rule_style_count(HEADER_FIELDS, "header"),
+            "body": self._get_rule_style_count(BODY_FIELDS, "body"),
+            "footer": self._get_rule_style_count(FOOTER_FIELDS, "footer"),
         }
 
-        lUniqueCounts = sorted(set(dCounts.values()))
-        if len(lUniqueCounts) != 1:
+        if len(set(dCounts.values())) != 1:
             raise exceptions.ConfigurationError(
                 "Block comment style count mismatch: header={0}, body={1}, footer={2}. "
                 "All three block_comment rules must define the same number of styles.".format(dCounts["header"], dCounts["body"], dCounts["footer"]),
             )
 
-        return lUniqueCounts[0]
+        return dCounts["header"]
 
-    def _get_family_style_count(self, lFields, sFamilyName):
+    def _get_rule_style_count(self, lFields, sRuleName):
         iStyleCount = 1
 
         for sField in lFields:
@@ -359,7 +358,7 @@ class Rule(structure.Rule):
                 elif iLength != iStyleCount:
                     raise exceptions.ConfigurationError(
                         "Block comment {0} configuration mismatch: field '{1}' has {2} entries, "
-                        "expected 1 or {3}.".format(sFamilyName, sField, iLength, iStyleCount),
+                        "expected 1 or {3}.".format(sRuleName, sField, iLength, iStyleCount),
                     )
 
         return iStyleCount
